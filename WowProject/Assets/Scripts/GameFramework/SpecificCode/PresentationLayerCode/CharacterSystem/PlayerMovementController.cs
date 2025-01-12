@@ -17,20 +17,21 @@ public class PlayerMovementController : MonoBehaviour,IController
     public LayerMask groundLayer;
     private Vector3 motionVector;
     private bool isJumping;
-    private InputController ic;
+    protected InputController ic;
     private characterFSM characterFSM;
+    protected ChoiceCharacterDress ccd;
+    private bool isSyncCharacter;
+    private float syncInterval = 0.05f;
+    private float lastSendSyncTime;
 
-
-
-    private void Start()
+    private void Awake()
     {
         characterController = GetComponent<CharacterController>();
         groundCheckPointTrans = transform.Find("groundCheckPointTrans");
         ic = gameObject.AddComponent<InputController>();
-        ChoiceCharacterDress ccd =  gameObject.AddComponent<ChoiceCharacterDress>();
+        ccd = gameObject.AddComponent<ChoiceCharacterDress>();
         characterFSM = gameObject.AddComponent<characterFSM>();
-        characterFSM.InitFSM(ccd.currentCharacterGo.GetComponent<Animator>(),ic);
-        gameObject.AddComponent<PlayerHeadController>().InitPlayerHeadCtrl(ccd.currentCharacterGo.transform);
+        lastSendSyncTime = Time.time;
     }
 
    
@@ -40,6 +41,7 @@ public class PlayerMovementController : MonoBehaviour,IController
     {
         PlayerRotateViewControl();
         PlayerMoveAndJumpControl();
+        SyncUpdate();
     }
 
     private void PlayerRotateViewControl()
@@ -98,5 +100,32 @@ public class PlayerMovementController : MonoBehaviour,IController
             characterFSM.ChangeState(CHARACTERSTATE.IDLE);
         }
     }
+
+    public void InitDressState(PlayerData pd)
+    {
+        ccd.SetMaterial(pd);
+        characterFSM.InitFSM(ccd.currentCharacterGo.GetComponent<Animator>(), ic);
+        gameObject.AddComponent<PlayerHeadController>().InitPlayerHeadCtrl(ccd.currentCharacterGo.transform, (int)pd.gender);
+    }
+
+    private void SyncUpdate() 
+    {
+        if (!isSyncCharacter) return;
+        if (Time.time - lastSendSyncTime < syncInterval) return;
+        lastSendSyncTime = Time.time;
+        PTSyncCharacter pts = new PTSyncCharacter();
+        pts.x = transform.position.x;
+        pts.y = transform.position.y;
+        pts.z = transform.position.z;
+        pts.ex = transform.eulerAngles.x;
+        pts.ey = transform.eulerAngles.y;
+        pts.ez = transform.eulerAngles.z;
+        pts.characterState = characterFSM.GetCurrentState();
+        this.SendCommand<SendPTCommand>(pts);
+
+    }
+
+
+
 
 }

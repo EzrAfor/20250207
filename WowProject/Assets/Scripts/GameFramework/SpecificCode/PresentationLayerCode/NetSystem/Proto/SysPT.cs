@@ -2,17 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SysPT : MonoBehaviour
+public class PTPing : PTBase
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    public PTPing() {protoName="PTPing"; }
 }
+
+
+public class PTPong : PTBase
+{
+    public PTPong() { protoName = "PTPong"; }
+}
+
+

@@ -21,6 +21,7 @@ public class RegisterPanel : BasePanel
         cancelBtn = DeepFindTransform.DeepFindChild(transform, "Btn_Cancel").GetComponent<Button>();
         registerBtn.onClick.AddListener(OnRegisterClick);
         cancelBtn.onClick.AddListener(() => { base.OnClose(); });
+        this.SendCommand<RegistPTListenerCommand>(new PTSrc { ptName = "PTRegister",listener=OnPTRegister });
 
     }
 
@@ -34,9 +35,22 @@ public class RegisterPanel : BasePanel
             uiSystem.OpenPanel<TipPanel>("两次输入密码不同");
             return;
         }
-        uiSystem.OpenPanel<TipPanel>("注册成功");
-        base.OnClose();
+        PTRegister pt = new PTRegister();
+        pt.id = idInput.text;
+        pt.pw = pwInput.text;
+        this.SendCommand<SendPTCommand>(pt);
     }
 
-
+    private void OnPTRegister(PTBase pt)
+    {
+        PTRegister ptr = (PTRegister)pt;
+        if (ptr.result == 0)
+        {
+            uiSystem.OpenPanel<TipPanel>("注册成功");
+            OnClose();
+        }else
+        {
+            uiSystem.OpenPanel<TipPanel>("注册失败");
+        }
+    }
 }

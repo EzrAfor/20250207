@@ -84,10 +84,7 @@ public class UISystem : IUISystem
         OpenPanel<GamePanel>();
     }
 
-    public void RotateModel(float angle) { 
-        
-    }
-
+ 
 
    
 

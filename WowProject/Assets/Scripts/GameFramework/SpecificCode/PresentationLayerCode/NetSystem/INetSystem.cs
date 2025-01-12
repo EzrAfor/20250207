@@ -19,5 +19,21 @@ public interface INetSystem : ISystem
 
 
     public void SendPTEvent(string ptName, PTBase pt);
-   
+
+    public void SetPDValue(PlayerData pd);
+    public PlayerData GetPDValue();
+
+
+    public void SetPDListValue(List<PlayerData> list);
+
+    public List<PlayerData> GetPDListValue();
+
+
+
+    public List<PlayerData> GetSyncPDListValue();
+
+    public void AddNewPlayerData(PlayerData pd,SyncPMCtrl spmc);
+
+    public void ExitPlayerData(PlayerData pd);
+
 }

@@ -11,7 +11,7 @@ public class PlayerHeadController : MonoBehaviour,IController
     private Transform[] points;
     private int currentindex;
     private bool stopLooking;
-
+    private int gender;//ÄÐ0Å®1
 
     // Start is called before the first frame update
     void Start()
@@ -40,27 +40,34 @@ public class PlayerHeadController : MonoBehaviour,IController
         currentSpine.Rotate(spineAngle);
     }
 
-    public void InitPlayerHeadCtrl(Transform targetModelTrans) {
+    public void InitPlayerHeadCtrl(Transform targetModelTrans,int sex) {
+        if (sex == 0) { 
         currentSpine = GameObject.Find("character/bloodelf/male/bloodelfmale_hd_bone_9").transform;
+        }
+        else
+        {
+        currentSpine = GameObject.Find("character/bloodelf/female/bloodelffemale_hd_bone_9").transform;
+        }
+        gender = sex;
     }
 
     private void GetLookTargetIndex(object offsetAngle) {
         float oa = (float)offsetAngle;
         switch (oa) {
             case 0:
-                currentindex = 0;
+                currentindex = 0+gender*5;
                 break;
             case 45:
-                currentindex = 1;
+                currentindex = 1 + gender * 5;
                 break;
             case -45:
-                currentindex = 2;
+                currentindex = 2 + gender * 5;
                 break;
             case -90:
-                currentindex = 3;
+                currentindex = 3 + gender * 5;
                 break;
             case 90:
-                currentindex = 4;
+                currentindex = 4 + gender * 5;
                 break;
             default:
                 break;

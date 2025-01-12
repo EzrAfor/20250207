@@ -2,13 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SceneLoader : MonoBehaviour
+public class SceneLoader : MonoBehaviour,IController
 {
     // Start is called before the first frame update
     void Start()
     {
-        GameObject.Instantiate(GameResSystem.GetRes<GameObject>("Prefabs/Character/Player"));
-        GameObject.Instantiate(GameResSystem.GetRes<GameObject>("Prefabs/Scene/SilvermoonCity"));
+        this.SendCommand<SendEnterGamePTCommand>();
+        this.SendCommand<RegistPTListenerCommand>(new PTSrc() {ptName= "PTEnterGameScene",listener= OnPTEnterGameScene });
+
     }
 
     // Update is called once per frame
@@ -16,4 +17,12 @@ public class SceneLoader : MonoBehaviour
     {
         
     }
+
+    private void OnPTEnterGameScene(PTBase pt)
+    {
+        PTEnterGameScene ptgs = (PTEnterGameScene)pt;
+        this.SendCommand<OnPTEnterGameSceneCommand>(ptgs);
+
+    }
+
 }

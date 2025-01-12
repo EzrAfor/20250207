@@ -22,10 +22,14 @@ public class LoginPanel : BasePanel
         regBtn = transform.Find("Btn_Regist").GetComponent<Button>();
         exitBtn = transform.Find("Btn_Exit").GetComponent<Button>();
 
-
+        //监听
         loginBtn.onClick.AddListener(OnLoginClick);
         regBtn.onClick.AddListener(OnRegisterClick);
         exitBtn.onClick.AddListener(OnExitGame);
+
+        //连接服务器
+        this.SendCommand<ConnectCommand>(new ConnectCommandSrc { ipAddress = "127.0.0.1", port = 8888 });
+        this.SendCommand<RegistPTListenerCommand>(new PTSrc { ptName="PTLogin",listener=OnPTLogin});
     }
 
     public override void OnShow(params object[] objs)
@@ -50,9 +54,27 @@ public class LoginPanel : BasePanel
             uiSystem.OpenPanel<TipPanel>("用户名和密码不能为空");
             return;
         }
-        uiSystem.OpenPanel<MaskPanel>();
-       
+        PTLogin pt = new PTLogin(); 
+        pt.id = idInput.text;
+        pt.pw = pwInput.text;
+        this.SendCommand<SendPTCommand>(pt);        
     }
+
+    //收到登录协议
+    private void OnPTLogin(PTBase pt)
+    {
+        PTLogin ptl = (PTLogin)pt;
+        if (ptl.result == 0) {
+            uiSystem.OpenPanel<TipPanel>("登录成功", false);
+            uiSystem.OpenPanel<MaskPanel>();
+        }
+        else
+        {
+            uiSystem.OpenPanel<TipPanel>("登录失败", false);
+        }
+    }
+
+
 
     private void OnRegisterClick()
     {
@@ -75,5 +97,6 @@ public class LoginPanel : BasePanel
             GameObject.Destroy(frostwurmnorthrendGO);
         }
     }
-
+    
+    
 }

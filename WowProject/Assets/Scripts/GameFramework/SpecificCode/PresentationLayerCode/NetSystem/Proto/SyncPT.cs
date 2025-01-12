@@ -2,17 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SyncPT : MonoBehaviour
+public class PTSyncCharacter : PTBase//同步协议
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    public PTSyncCharacter() { protoName = "PTSyncCharacter"; }
+    public string id;
+    public float x;
+    public float y;
+    public float z;
+    public float ex;
+    public float ey;
+    public float ez;
+    public CHARACTERSTATE characterState;
 }

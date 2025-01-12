@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,7 +11,7 @@ public class ChoiceCharacterDress : MonoBehaviour,IController
     private GameObject[] gos;
     //private IUISystem uiSystem;
     public GameObject currentCharacterGo;
-    private float initAngle=90;
+    private float initAngle=90f;
     private float offsetAngle;
     private void Awake()
     {
@@ -24,7 +25,9 @@ public class ChoiceCharacterDress : MonoBehaviour,IController
         }
         //uiSystem = this.GetSystem<IUISystem>();
         this.RegisterEvent<RotateCharacterModelEvent>(RotateCharacterModel);
-        SetMaterial();
+        this.RegisterEvent<SetMaterialEvent>(SetMaterial);
+        this.RegisterEvent<RotateModelEvent>(RotateModel);
+        this.RegisterEvent<RotateModelAngleEvent>(RotateModelAngle);
     }
 
     private void Update()
@@ -33,10 +36,9 @@ public class ChoiceCharacterDress : MonoBehaviour,IController
 
 
 
-    public void SetMaterial() {
-        // uiSystem.ChoicePlayerData = new PlayerData();
-        //PlayerData pd = uiSystem.ChoicePlayerData;
-        PlayerData pd = new PlayerData();
+    public void SetMaterial(object obj) 
+    {        
+        PlayerData pd = (PlayerData)obj;
         for (int i = 0; i < gos.Length; i++)
         {            
             gos[i].SetActive(false);
@@ -51,20 +53,17 @@ public class ChoiceCharacterDress : MonoBehaviour,IController
                 {
                     smrs[(int)pd.gender].materials[i].CopyPropertiesFromMaterial(m);
                 }
-
             }
             else {
                 if (i != 0 && i != 2 && i != 10)
                 {
                     smrs[(int)pd.gender].materials[i].CopyPropertiesFromMaterial(m);
                 }
-
-            }
-            
+            }            
         }
     }
 
-    private void RotateCharacterModel(object rotateSrc) {
+    private void RotateCharacterModel(object rotateSrc) {//游戏内模型旋转
         if (!currentCharacterGo) return;
         RotateModelSrc rs = (RotateModelSrc)rotateSrc;
         float h = rs.h;
@@ -91,6 +90,15 @@ public class ChoiceCharacterDress : MonoBehaviour,IController
         }
         currentCharacterGo.transform.localEulerAngles=new Vector3(0,initAngle+offsetAngle,0);
         this.SendEvent<GetLookTargetIndexEvent>(offsetAngle);
+    }
+
+    private void RotateModel(object angle)
+    {
+        currentCharacterGo.transform.localEulerAngles += new Vector3(0, (float)angle, 0);
+    }
+    private void RotateModelAngle(object obj)
+    {
+    currentCharacterGo.transform.localEulerAngles = new Vector3(0,-90,0);
     }
 
 

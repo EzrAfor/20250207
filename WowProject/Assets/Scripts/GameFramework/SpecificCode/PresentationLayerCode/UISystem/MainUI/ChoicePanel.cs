@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class ChoicePanel : BasePanel
@@ -17,6 +18,8 @@ public class ChoicePanel : BasePanel
 
     private GameObject leafBGGO;
     private GameObject characterGO;
+    private List<GameObject> toggoleGo = new List<GameObject>();
+    private bool startRotating;
     public override void OnInit()
     {
         base.OnInit();
@@ -34,26 +37,27 @@ public class ChoicePanel : BasePanel
         createCharacterBtn.onClick.AddListener(OnOpenCreateCharacterPanelClick);
         deleteCharacterBtn.onClick.AddListener(OnDeleteCharacterClick);
         exitBtn.onClick.AddListener(OnReturnToLoginPanelClick);
-
+        this.SendCommand<RegistPTListenerCommand>(new PTSrc() { ptName= "PTGetPlayerDatas", listener=OnPTGetPlayerDatas});
+        this.RegisterEvent<LoadOrDestoryPlayerModelGameObjectsEvent>(LoadOrDestoryPlayerModelGameObjects);
 
     }
 
     private void OnEnterGameClick() {
-        base.OnClose();
+        OnClose();
         uiSystem.OpenPanel<LoadPanel>();
     }
 
     private void OnLeftRotateCharacterClick() {
-        uiSystem.RotateModel(-45);
+        this.SendEvent<RotateModelEvent>(-45f);
     }
 
     private void OnRightRotateCharacterClick()
     {
-        uiSystem.RotateModel(45);
+        this.SendEvent<RotateModelEvent>(45f);
     }
 
     private void OnOpenCreateCharacterPanelClick() {
-        base.OnClose();
+        OnClose();
         uiSystem.OpenPanel<CharacterCreatePanel>();
     }
 
@@ -63,34 +67,102 @@ public class ChoicePanel : BasePanel
     }
 
     private void OnReturnToLoginPanelClick() {
-        base.OnClose();
+        OnClose();
         uiSystem.OpenPanel<LoginPanel>();
     }
 
+ 
+    public override void OnShow(params object[] objs)
+    {
+        base.OnShow(objs);
+        this.SendCommand<SendPTCommand>(new PTGetPlayerDatas());
+    }
     public override void OnClose()
     {
         base.OnClose();
-        LoadOrDestoryChoicePanelGameObjects();
+        LoadOrDestoryPlayerModelGameObjects(false);
     }
 
-    public override void OnShow(params object[] objs)
+    public void LoadOrDestoryPlayerModelGameObjects(object obj)
     {
-        base.OnShow(objs); LoadOrDestoryChoicePanelGameObjects(true);
-    }
-
-    public void LoadOrDestoryChoicePanelGameObjects(bool ifLoad = false)
-    {
-        if (ifLoad == true)
+        bool ifLoad = (bool)obj;
+        if (leafBGGO == null)
         {
             leafBGGO = GameObject.Instantiate(GameResSystem.GetRes<GameObject>("Prefabs/Effect/LeavesPS"));
             characterGO = GameObject.Instantiate(GameResSystem.GetRes<GameObject>("Prefabs/Character/ChoiceModel/BloodDelf"));
         }
-        else
+        leafBGGO.SetActive(ifLoad);
+        characterGO.SetActive(ifLoad);
+    }
+
+    private void OnPTGetPlayerDatas(PTBase pt)
+    {
+        PTGetPlayerDatas ptpd = (PTGetPlayerDatas)pt;
+        PlayerDatasList pdl = (PlayerDatasList)JsonUtility.FromJson(ptpd.playerDatasJson,typeof(PlayerDatasList));
+        if (pdl.playerDatas.Count>0)
         {
-            GameObject.Destroy(leafBGGO);
-            GameObject.Destroy(characterGO);
+            //有角色
+            LoadOrDestoryPlayerModelGameObjects(true);
+            UpdateCharacterInfo(pdl.playerDatas);
+            PlayerData pd = pdl.playerDatas[pdl.choiceID];
+            ChooseCharacter(pd); 
         }
     }
+
+    //更新所有角色信息
+    private void UpdateCharacterInfo(List<PlayerData> list)
+    {
+        //清空上一次进入页面的ui物体
+        for (int i = 0; i < toggoleGo.Count; i++)
+        {
+            Destroy(toggoleGo[i]);    
+        }
+        toggoleGo.Clear();
+        //更新当此进入所有ui
+        for (int i = 0; i < list.Count; i++)
+        {
+            PlayerData pd = list[i];
+            GameObject go = Instantiate(GameResSystem.GetRes<GameObject>("Prefabs/UI/ChoicePanelItem/Toggle_CharacterInfo"),toggleGroup.transform);
+            toggoleGo.Add(go);
+            go.transform.GetChild(1).GetComponent<Text>().text = pd.id;
+            go.transform.GetChild(2).GetComponent<Text>().text = "等级"+pd.level+" "+pd.race+" "+pd.role;
+            Toggle t = go.GetComponent<Toggle>();
+            t.group = toggleGroup;
+            t.onValueChanged.AddListener(//onvaluechanged方法会默认返回一个selected值用来表示是否被选中
+                (bool selected) => {
+                    if (selected) {                        
+                        ChooseCharacter(list[toggoleGo.IndexOf(go)]);
+                    }    
+                }
+                );
+
+        }
+    }
+    private void Update()
+    {       
+        if (Input.GetMouseButton(0))
+        {
+            startRotating = true;
+        }
+        else
+        {
+            startRotating = false;
+        }
+        if (startRotating)
+        {
+            this.SendEvent<RotateModelEvent>(Input.GetAxisRaw("Mouse X") * 2);
+        }
+    }
+
+
+    private void ChooseCharacter(PlayerData pd)
+    {
+        this.SendEvent<SetMaterialEvent>(pd);
+        this.SendCommand<SetPDValueCommand>(pd);
+        this.SendEvent<RotateModelAngleEvent>();
+    }
+
+
 
 
 }

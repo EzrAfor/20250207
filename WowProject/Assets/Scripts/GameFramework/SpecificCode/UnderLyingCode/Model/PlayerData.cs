@@ -3,17 +3,34 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
+[Serializable]
 public class PlayerData
 {
-   public string id;
-    public ROLE role=ROLE.PALADIN;
-    public GENDER gender=GENDER.MALE;
-    public RACE race=RACE.BLOODELF;
+    public string id;
+    public float x;
+    public float y;
+    public float z;
+    public float ex;
+    public float ey;
+    public float ez;
+    public int coin;
+    public int mp;
+    public int hp;
+    public int level;
+    public ROLE role;
+    public GENDER gender;
+    public RACE race;
+    public CHARACTERSTATE characterState;
 
-   
+
 }
-
+[Serializable]
+//玩家数据列表类，作为容器方便jsonutility解析
+public class PlayerDatasList
+{
+    public int choiceID;//当前选择的人物id
+    public List<PlayerData> playerDatas;
+}
 
 public enum ROLE
 {

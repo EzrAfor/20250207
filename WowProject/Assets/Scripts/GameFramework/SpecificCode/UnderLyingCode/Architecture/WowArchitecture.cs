@@ -7,7 +7,7 @@ public class WowArchitecture : Architecture<WowArchitecture>
     protected override void Init()
     {
         this.RegisterSystem<INetSystem>(new NetSystem());
-        //this.RegisterSystem<IUISystem>(new UISystem());
+        this.RegisterSystem<IUISystem>(new UISystem());
         
     }
 }

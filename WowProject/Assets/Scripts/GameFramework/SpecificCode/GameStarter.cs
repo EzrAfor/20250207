@@ -15,26 +15,13 @@ public class GameStarter : MonoBehaviour,IController
         DontDestroyOnLoad(gameObject);
     }
 
-    private void Start()
+    private void Update()
     {
-        INetSystem ins = this.GetSystem<INetSystem>();
-        ins.Connect("127.0.0.1", 8888);
-        ins.RegistPTListener("PTRegister",RegistUser);
-        
-
-    }
-
-
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.S)) {
-            this.GetSystem<INetSystem>().Send(new PTRegister() { id="ToYJF",pw="123"});
-        }
         this.GetSystem<INetSystem>().Update();
     }
 
-    private void RegistUser(PTBase pt) {
-        Debug.Log(pt.protoName);
-    }
+
+
+
 
 }

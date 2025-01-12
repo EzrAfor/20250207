@@ -11,8 +11,7 @@ public class GameResSystem : MonoBehaviour
             return resDict[resPath] as T;
         }
         else {
-
-         Object res =    Resources.Load(resPath);
+            Object res = Resources.Load(resPath);
             resDict.Add(resPath, res);
             return res as T;
         }

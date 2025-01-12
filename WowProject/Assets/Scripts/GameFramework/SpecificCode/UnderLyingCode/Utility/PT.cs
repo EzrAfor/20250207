@@ -6,7 +6,7 @@ using System.Text;
 using UnityEngine;
 
 //协议封装与解析工具类
-public static class PT 
+public  class PT 
 {
     public static byte[] EncodeBody(PTBase ptBase) { 
 

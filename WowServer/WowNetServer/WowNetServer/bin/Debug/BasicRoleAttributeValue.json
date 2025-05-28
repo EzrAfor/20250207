@@ -1,0 +1,12 @@
+[
+{"mana":100,"stamina":8,"strength":10,"agility":5,"intellect":3,"spirit":4,"armor":2,"resistance":0,"moveSpeed":2.6,"attackRange":1.3,"HP":0,"attackPower":0,"spellPower":0,"attackRate":0,"hitChange":0,"evasionRate":0,"criticalStike":0},
+{"mana":20,"stamina":10,"strength":8,"agility":5,"intellect":8,"spirit":5,"armor":3,"resistance":0,"moveSpeed":2.5,"attackRange":1.3,"HP":0,"attackPower":0,"spellPower":0,"attackRate":0,"hitChange":0,"evasionRate":0,"criticalStike":0},
+{"mana":40,"stamina":8,"strength":7,"agility":10,"intellect":5,"spirit":5,"armor":1,"resistance":0,"moveSpeed":3,"attackRange":5,"HP":0,"attackPower":0,"spellPower":0,"attackRate":0,"hitChange":0,"evasionRate":0,"criticalStike":0},
+{"mana":100,"stamina":7,"strength":6,"agility":9,"intellect":5,"spirit":5,"armor":1,"resistance":0,"moveSpeed":3.2,"attackRange":1.2,"HP":0,"attackPower":0,"spellPower":0,"attackRate":0,"hitChange":0,"evasionRate":0,"criticalStike":0},
+{"mana":40,"stamina":6,"strength":4,"agility":5,"intellect":10,"spirit":10,"armor":0,"resistance":0,"moveSpeed":2.8,"attackRange":3.5,"HP":0,"attackPower":0,"spellPower":0,"attackRate":0,"hitChange":0,"evasionRate":0,"criticalStike":0},
+{"mana":100,"stamina":9,"strength":10,"agility":8,"intellect":6,"spirit":6,"armor":2,"resistance":0,"moveSpeed":2.6,"attackRange":1.3,"HP":0,"attackPower":0,"spellPower":0,"attackRate":0,"hitChange":0,"evasionRate":0,"criticalStike":0},
+{"mana":40,"stamina":9,"strength":7,"agility":7,"intellect":8,"spirit":8,"armor":0,"resistance":0,"moveSpeed":2.8,"attackRange":3.5,"HP":0,"attackPower":0,"spellPower":0,"attackRate":0,"hitChange":0,"evasionRate":0,"criticalStike":0},
+{"mana":80,"stamina":5,"strength":3,"agility":5,"intellect":12,"spirit":10,"armor":0,"resistance":0,"moveSpeed":2.8,"attackRange":3.5,"HP":0,"attackPower":0,"spellPower":0,"attackRate":0,"hitChange":0,"evasionRate":0,"criticalStike":0},
+{"mana":70,"stamina":7,"strength":5,"agility":5,"intellect":10,"spirit":10,"armor":0,"resistance":0,"moveSpeed":2.8,"attackRange":3.5,"HP":0,"attackPower":0,"spellPower":0,"attackRate":0,"hitChange":0,"evasionRate":0,"criticalStike":0},
+{"mana":60,"stamina":8,"strength":8,"agility":9,"intellect":7,"spirit":9,"armor":2,"resistance":0,"moveSpeed":2.9,"attackRange":1.2,"HP":0,"attackPower":0,"spellPower":0,"attackRate":0,"hitChange":0,"evasionRate":0,"criticalStike":0}
+]

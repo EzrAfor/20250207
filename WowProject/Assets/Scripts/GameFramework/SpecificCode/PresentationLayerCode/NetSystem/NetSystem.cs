@@ -1,88 +1,104 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
+using UnityEngine;
 using System.Net.Sockets;
 using System.Text;
-using System.Xml.Linq;
-using UnityEngine;
-using UnityEngine.UIElements;
-
+using System;
+using System.Linq;
+using UnityEngine.Tilemaps;
+//*****************************************
+//åˆ›å»ºäººï¼š Trigger 
+//åŠŸèƒ½è¯´æ˜ï¼šç½‘ç»œç³»ç»Ÿ
+//***************************************** 
 public class NetSystem : INetSystem
 {
     private Socket socket;
-    private ByteObject readBuff ;
-    private Queue<ByteObject> writeQueue ;
+    private ByteObject readBuff;
+    private Queue<ByteObject> writeQueue;
     private bool isClosing;
     private bool isConnecting;
     public delegate void PTListener(PTBase pt);
-    private Dictionary<string,PTListener> ptListenerDict=new Dictionary<string,PTListener>();
-    private List<PTBase> ptList = new List<PTBase>();
+    private Dictionary<string, PTListener> ptListenersDict = new Dictionary<string, PTListener>();
+    private List<PTBase> ptList=new List<PTBase>();
     private int ptListCount;
-    private const int MAXPTUPDATENUM = 10;
+    private const int MAXPTUPDATENUM=10;
     private bool usePingPong;
     private int pingPongInterval = 30;
     private float lastPingTime;
     private float lastPongTime;
-    private PlayerData currentPD;//µ±Ç°¿Í»§¶Ë½øÈëÓÎÏ·µÄ½ÇÉ«ĞÅÏ¢
-    private List<PlayerData> pdList;//ËùÓĞÍæ¼Ò½ÇÉ«ĞÅÏ¢
-    private List<PlayerData> syncPdList;//ËùÓĞĞèÒªÍ¬²½µÄÆäËû¿Í»§¶ËÍæ¼Ò½ÇÉ«ĞÅÏ¢
-    private Dictionary<string, SyncPMCtrl> syncPMCDict;//ËùÓĞĞèÒªÍ¬²½µÄÆäËû¿Í»§¶ËÍæ¼ÒµÄ×Öµä
-
+    private PlayerSaveData currentPSD;//å½“å‰å®¢æˆ·ç«¯è¿›å…¥æ¸¸æˆçš„è§’è‰²ä¿¡æ¯
+    private PlayerData currentTargetPD;//å½“å‰å®¢æˆ·ç«¯ç©å®¶é€‰æ‹©çš„ç›®æ ‡çš„è§’è‰²ä¿¡æ¯
+    private List<PlayerData> syncPdList=new List<PlayerData>();//æ‰€æœ‰éœ€è¦åŒæ­¥çš„å…¶ä»–å®¢æˆ·ç«¯ç©å®¶è§’è‰²ä¿¡æ¯çš„åˆ—è¡¨
+    private Dictionary<string, SyncPMCtrl> syncPMCDict=new Dictionary<string, SyncPMCtrl>();//æ‰€æœ‰éœ€è¦åŒæ­¥çš„å…¶ä»–å®¢æˆ·ç«¯ç©å®¶è§’è‰²çš„å­—å…¸
+    private PlayerMovementController playermCtrl;//å½“å‰å®¢æˆ·ç«¯ç©å®¶çš„å¼•ç”¨
+    private int choiceID;
+    
+    #region ç½‘ç»œåè®®æ¶ˆæ¯äº‹ä»¶
     public void RegistPTListener(string ptName,PTListener listener)
     {
-        if (ptListenerDict.ContainsKey(ptName))
+        if (ptListenersDict.ContainsKey(ptName))
         {
-            ptListenerDict[ptName] += listener;
+            ptListenersDict[ptName] += listener;
         }
-        else {
-            ptListenerDict[ptName] = listener;
+        else
+        {
+            ptListenersDict[ptName] = listener;
         }
     }
-
-    public void UnregistPTListener(string ptName, PTListener listener) {
-        if (ptListenerDict.ContainsKey(ptName))
+    public void UnregistPTListener(string ptName, PTListener listener)
+    {
+        if (ptListenersDict.ContainsKey(ptName))
         {
-            ptListenerDict[ptName] -= listener;
+            ptListenersDict[ptName] -= listener;
         }
     }
-
-    public void SendPTEvent(string ptName, PTBase pt) {
-        if (ptListenerDict.ContainsKey(ptName))
+    public void SendPTEvent(string ptName, PTBase pt)
+    {
+        if (ptListenersDict.ContainsKey(ptName))
         {
-            ptListenerDict[ptName](pt);
+            ptListenersDict[ptName](pt);
         }
-
     }
-
-
-
+    #endregion
+    /// <summary>
+    /// å…³é—­å®¢æˆ·ç«¯
+    /// </summary>
     public void Close()
     {
-        if (writeQueue.Count > 0)
+        if (writeQueue.Count>0)
         {
             isClosing = true;
         }
-        else { 
-        socket.Close();
+        else
+        {
+            socket.Close();
         }
     }
 
-    private void InitState() {
-        socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);//ĞÂ½¨Ì×½Ó×Ö
-        socket.NoDelay = true;//ÓÅ»¯ĞÔÄÜ
+    private void InitState()
+    {
+        socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        socket.NoDelay = true;
         readBuff = new ByteObject();
         writeQueue = new Queue<ByteObject>();
         isClosing = false;
         usePingPong = true;
         lastPingTime = lastPongTime = Time.time;
-        RegistPTListener("PTPong",OnPTPong);
-
-        //¼Ü¹¹ÊÂ¼ş
-        this.RegisterEvent<OnConnectSucceedEvent>(OnConnectSucceed);
-        this.RegisterEvent<OnConnectFailEvent>(OnConnectFail);
-        this.SendCommand<RegistPTListenerCommand>(new PTSrc() {ptName= "PTSyncCharacter",listener= OnPTSyncCharacter });
-
+        RegistPTListener("PTPong", OnPTPong);
+        //æ¶æ„äº‹ä»¶
+        this.RegistEvent<OnConnectSucceedEvent>(OnConnectSucceed);
+        this.RegistEvent<OnConnectFailEvent>(OnConnectFail);
+        //ç½‘ç»œåè®®æ¶ˆæ¯
+        this.SendCommand<RegistPTListenerCommand>(new PTSrc() 
+        {ptName= "PTSyncCharacter",listener= OnPTSyncCharacter });
+        this.SendCommand<RegistPTListenerCommand>(new PTSrc()
+        { ptName = "PTSyncSetChoiceTarget", listener = OnPTSyncSetChoiceTarget });
+        this.SendCommand<RegistPTListenerCommand>(new PTSrc()
+        { ptName = "PTSyncAttack", listener = OnPTSyncAttack });
+        this.SendCommand<RegistPTListenerCommand>(new PTSrc()
+        { ptName = "PTSyncEnterOrLeaveAOI", listener = OnPTSyncEnterOrLeaveAOI });
+        this.SendCommand<RegistPTListenerCommand>(new PTSrc() 
+        { ptName = "PTGetInventoryItemList", listener = OnPTGetInventoryItemList });
     }
 
     public void Connect(string ip, int port)
@@ -91,15 +107,16 @@ public class NetSystem : INetSystem
         {
             return;
         }
-        if (isConnecting) return;
+        if (isConnecting)
+        {
+            return;
+        }
         InitState();
-        isConnecting=true;
-        //socket.Connect(ip, port);//±¾»ú²âÊÔ Í¬²½Á¬½Ó
-        socket.BeginConnect(ip, port, ConnectCallBack,socket);//Òì²½
-
+        isConnecting = true;
+        socket.BeginConnect(ip,port,ConnectCallback,socket);
     }
 
-    private void ConnectCallBack(IAsyncResult iar)
+    private void ConnectCallback(IAsyncResult iar)
     {
         try
         {
@@ -109,26 +126,29 @@ public class NetSystem : INetSystem
             this.SendEvent<OnConnectSucceedEvent>();
             isConnecting = false;
         }
-        catch (SocketException se) {
+        catch (SocketException se)
+        {
             this.SendEvent<OnConnectFailEvent>();
             Debug.Log(se);
         }
     }
 
-
     public void Init()
     {
-
+        
     }
 
     public void Send(PTBase msg)
     {
-
-        if(isClosing)return;
-        byte[] ptBytes = PT.EncodeName(msg).Concat(PT.EncodeBody(msg)).ToArray();// ½«³¤¶ÈĞÅÏ¢ÓëÏûÏ¢ÌåºÏ²¢
+        if (isClosing)
+        {
+            return;
+        }
+        byte[] ptBytes= PT.EncodeName(msg).Concat(PT.EncodeBody(msg)).ToArray();
         Int16 length = (Int16)ptBytes.Length;
         byte[] lengthBytes = BitConverter.GetBytes(length);
-        if (!BitConverter.IsLittleEndian) {//´óĞ¡¶Ë´¦Àí
+        if (!BitConverter.IsLittleEndian)
+        {
             lengthBytes.Reverse();
         }
         byte[] sendBytes = lengthBytes.Concat(ptBytes).ToArray();
@@ -136,223 +156,290 @@ public class NetSystem : INetSystem
         int count = 0;
         lock (writeQueue)
         {
-           writeQueue.Enqueue(bo);
-           count = writeQueue.Count;
+            writeQueue.Enqueue(bo);
+            count = writeQueue.Count;
         }
         if (count == 1)
         {
-            socket.BeginSend(bo.bytes, bo.readIndex, bo.dataLength, SocketFlags.None, SendCallBack, socket);
+            socket.BeginSend(bo.bytes, bo.readIndex, bo.dataLength, SocketFlags.None, SendCallback, socket);
         }
     }
 
-    private void SendCallBack(IAsyncResult iar)
+    private void SendCallback(IAsyncResult iar)
     {
         try
         {
             Socket socket = (Socket)iar.AsyncState;
-            int length = socket.EndSend(iar);// Íê³ÉÒì²½·¢ËÍ²Ù×÷£¬²¢»ñÈ¡Êµ¼Ê·¢ËÍµÄ×Ö½ÚÊı
+            int length = socket.EndSend(iar);
             ByteObject bo;
             lock (writeQueue)
             {
-                bo = writeQueue.First();                
-            }            
+                bo = writeQueue.First();
+            }
             bo.readIndex += length;
-            int count = 0;
             if (bo.dataLength == 0)
             {
                 lock (writeQueue)
                 {
                     writeQueue.Dequeue();
-                    count = writeQueue.Count;
+                    bo = writeQueue.First();
                 }
-
             }
-            if (count>0) {
-                socket.BeginSend(bo.bytes, bo.readIndex, bo.dataLength, SocketFlags.None, SendCallBack, socket);
-            } else if (isClosing) {
+            if (bo!=null)
+            {
+                socket.BeginSend(bo.bytes, bo.readIndex, bo.dataLength, SocketFlags.None, SendCallback, socket);
+            }
+            else if (isClosing)
+            {
                 socket.Close();
             }
-
-
         }
         catch (SocketException se)
         {
-            Debug.Log("·¢ËÍÊ§°Ü" + se);
+            Debug.Log("å‘é€å¤±è´¥ï¼š" + se);
         }
     }
 
-
-
-
-    //public void Send(string msg)
-    //{
-    //    socket.Send(Encoding.Default.GetBytes(msg));//×ª³ÉÊı×éÊÇÒòÎªsend·½·¨Ö»ÄÜ·¢ËÍÊı×é
-    //}
-
-
-    //public void Receive() {
-    //    byte[] readBuff = new byte[1024];
-    //    int count = socket.Receive(readBuff);
-    //    string readStr = Encoding.UTF8.GetString(readBuff,0,count);
-    //    Debug.Log("¿Í»§¶Ë½ÓÊÜÏûÏ¢"+readStr);
-    //}
-
     private void Receive()
-    {        
-        socket.BeginReceive(readBuff.bytes, readBuff.writeIndex, readBuff.remainLength, SocketFlags.None, ReceiveCallBack, socket);
+    {
+        socket.BeginReceive(readBuff.bytes, readBuff.writeIndex, readBuff.remainLength, SocketFlags.None, ReceiveCallback, socket);
     }
 
-    private void ReceiveCallBack(IAsyncResult iar)
+    private void ReceiveCallback(IAsyncResult iar)
     {
         try
         {
             Socket socket = (Socket)iar.AsyncState;
-            int length = socket.EndReceive(iar);// Íê³ÉÒì²½½ÓÊÕ²Ù×÷£¬²¢»ñÈ¡Êµ¼Ê½ÓÊÕµ½µÄ×Ö½ÚÊı
-            readBuff.writeIndex += length;//½«Êı×éµÄË÷Òı½øĞĞÀÛ¼Ó
+            int length = socket.EndReceive(iar);
+            readBuff.writeIndex += length;
+            //Debug.Log("æ¥æ”¶æ•°æ®é•¿åº¦" + length);
             HandleReceiveData();
-            if (readBuff.remainLength < 8) {
+            if (readBuff.remainLength<8)
+            {
                 readBuff.MoveBytes();
                 readBuff.ReSize(readBuff.dataLength*2);
             }
             Receive();
-
         }
         catch (SocketException se)
         {
-            Debug.Log("½ÓÊÕÊ§°Ü" + se);
+            Debug.Log("æ¥æ”¶å¤±è´¥ï¼š" + se);
         }
     }
 
-
-    private void HandleReceiveData() {
-        if (readBuff.dataLength <= 2)
-        {// ¼ì²éÊÇ·ñÓĞ×ã¹»µÄÊı¾İÀ´¶ÁÈ¡ÏûÏ¢³¤¶È£¨ÖÁÉÙĞèÒª2¸ö×Ö½Ú£© ÕâÀïµÄ2´ú±íµÄÊÇ2¸ö×Ö½Ú Ò²¾ÍÊÇ¶ÁÈ¡ÏûÏ¢³¤¶È
+    private void HandleReceiveData()
+    {
+        if (readBuff.dataLength<=2)
+        {
             return;
         }
-        //½øĞĞ´óĞ¡¶Ë´¦Àí ½øĞĞ»òÔËËãºó¿ÉÒÔµÃµ½ÍêÕûµÄÊ®ÁùÎ»Öµ
+        //00000010(ä½åœ°å€)  00000001  1*2+1*256=258 å°ç«¯
+        //Debug.Log("è¯»å–ç´¢å¼•ä¸ºï¼š" + readBuff.readIndex);
         Int16 bodyLength = (Int16)(readBuff.bytes[readBuff.readIndex] | readBuff.bytes[readBuff.readIndex+1] << 8);
-        //Int16 bodyLength =  BitConverter.ToInt16(readBuff,0);// ´Ó»º³åÇøµÄÇ°Á½¸ö×Ö½ÚÖĞ¶ÁÈ¡ÏûÏ¢³¤¶È
-        if (readBuff.dataLength < bodyLength+2)
-        {// ¼ì²éÊÇ·ñÓĞ×ã¹»µÄÊı¾İÀ´°üº¬Õû¸öÏûÏ¢Ìå ¼Ó2ÊÇÒòÎªÒª°üº¬Ç°Á½¸ö´ú±íÊı¾İ´óĞ¡µÄ×Ö½Ú
+        //Int16 bodyLength = BitConverter.ToInt16(readBuff,0);
+        //Debug.Log("æ¶ˆæ¯æ€»ä½“é•¿åº¦ä¸ºï¼š" + bodyLength);
+        if (readBuff.dataLength<bodyLength+2)
+        {
             return;
         }
         readBuff.readIndex += 2;
+        //è§£æåè®®å
         int nameCount = 0;
-        string protoName = PT.DecodeName(readBuff.bytes, readBuff.readIndex,out nameCount);//½âÎöĞ­Òé
-        if (protoName == "") {
-            Debug.Log("Ğ­Òé½âÎöÊ§°Ü");
+        string protoName = PT.DecodeName(readBuff.bytes,readBuff.readIndex,out nameCount);
+        if (protoName=="")
+        {
+            Debug.Log("åè®®è§£æå¤±è´¥");
             return;
         }
         readBuff.readIndex += nameCount;
+        //è§£æåè®®ä½“
         int bodyCount = bodyLength - nameCount;
-        PTBase ptBase = PT.DecodeBody(protoName, readBuff.bytes, readBuff.readIndex, bodyCount);
-
+        PTBase ptBase= PT.DecodeBody(protoName,readBuff.bytes,readBuff.readIndex, bodyCount);
         readBuff.readIndex += bodyCount;
         readBuff.CheckAndMoveBytes();
-        lock (ptList) { 
-        ptList.Add(ptBase);
+        lock (ptList)
+        {
+            ptList.Add(ptBase);
             ptListCount++;
         }
         HandleReceiveData();
     }
 
-    public void Update() {
+    public void Update()
+    {
         UpdatePT();
-        UpdatePingPong();
+        UptatePingPong();
     }
-
-    //ĞÄÌø»úÖÆ¼ì²â·½·¨
-    private void UpdatePingPong() {
-        if (!usePingPong) return;
-        if (Time.time - lastPingTime > pingPongInterval) {//¿Í»§¶Ë·¢ËÍping
-            Send(new PTPing());
-            lastPingTime = Time.time;
-        }
-        //¿Í»§¶Ë¼ì²âÊÇ·ñÊÕµ½pong
-        if (Time.time - lastPongTime > pingPongInterval*4 ) { 
-        Close();
-        }
-    }
-
-    //¸üĞÂĞ­Òé×´Ì¬²¢´¥·¢Ïà¹ØĞ­ÒéÊÂ¼ş   
-    private void UpdatePT() {
-        if (ptListCount <= 0) {
+    /// <summary>
+    /// æ›´æ–°åè®®çŠ¶æ€å¹¶è§¦å‘ç›¸å…³åè®®äº‹ä»¶
+    /// </summary>
+    private void UpdatePT()
+    {
+        if (ptListCount<=0)
+        {
             return;
         }
         for (int i = 0; i < MAXPTUPDATENUM; i++)
         {
             PTBase ptBase = null;
-            lock (ptList) {
-                if (ptList.Count > 0) { 
+            lock (ptList)
+            {
+                if (ptList.Count>0)
+                {
                     ptBase = ptList[0];
                     ptList.RemoveAt(0);
                     ptListCount--;
                 }
             }
-            if (ptBase != null)
+            if (ptBase!=null)
             {
-
-                SendPTEvent(ptBase.protoName, ptBase);
+                SendPTEvent(ptBase.protoName,ptBase);
             }
-            else { 
-            break;
+            else
+            {
+                break;
             }
+        }
+    }
+    /// <summary>
+    /// å¿ƒè·³æœºåˆ¶æ£€æµ‹
+    /// </summary>
+    private void UptatePingPong()
+    {
+        if (!usePingPong)
+        {
+            return;
+        }
+        //å®¢æˆ·ç«¯å‘æœåŠ¡å™¨å‘é€pingåè®®
+        if (Time.time-lastPingTime>pingPongInterval)
+        {
+            Send(new PTPing());
+            lastPingTime = Time.time;
+        }
+        //å®¢æˆ·ç«¯æ£€æµ‹æ˜¯å¦æ¥æ”¶åˆ°æœåŠ¡å™¨å‘é€çš„pongåè®®
+        if (Time.time-lastPongTime> pingPongInterval*4)
+        {
+            Close();
         }
     }
 
     private void OnPTPong(PTBase pt)
     {
         lastPongTime = Time.time;
-
     }
 
+    /// <summary>
+    /// è¿æ¥æœåŠ¡å™¨æˆåŠŸ
+    /// </summary>
     private void OnConnectSucceed(object obj)
     {
-        Debug.Log("¿Í»§¶ËÁ¬½Ó³É¹¦");
+        Debug.Log("å®¢æˆ·ç«¯è¿æ¥æˆåŠŸ");
     }
-
-
+    /// <summary>
+    /// è¿æ¥æœåŠ¡å™¨å¤±è´¥
+    /// </summary>
     private void OnConnectFail(object obj)
     {
-        Debug.Log("¿Í»§¶ËÁ¬½ÓÊ§°Ü");
+        Debug.Log("å®¢æˆ·ç«¯è¿æ¥å¤±è´¥");
+    }
+    /// <summary>
+    /// è®¾ç½®ç©å®¶å½“å‰ä¿¡æ¯å€¼
+    /// </summary>
+    /// <param name="pd"></param>
+    public void SetPSDValue(PlayerSaveData psd)
+    {
+        currentPSD = psd;
+    }
+    /// <summary>
+    /// è®¾ç½®å½“å‰ç©å®¶é€‰æ‹©çš„äººç‰©ç¼–å·
+    /// </summary>
+    /// <param name="value"></param>
+    public void SetChoiceID(int value)
+    {
+        choiceID = value;
+    }
+    /// <summary>
+    /// è·å–å½“å‰ç©å®¶é€‰æ‹©çš„äººç‰©ç¼–å·
+    /// </summary>
+    /// <returns></returns>
+    public int GetChoiceID()
+    {
+        return choiceID;
     }
 
-    public void SetPDValue(PlayerData pd) { //ÉèÖÃÍæ¼Òµ±Ç°ĞÅÏ¢Öµ
-        currentPD = pd;
+    /// <summary>
+    /// è®¾ç½®å½“å‰å®¢æˆ·ç«¯ç©å®¶çš„pmcå¼•ç”¨
+    /// </summary>
+    /// <param name="pd"></param>
+    public void SetPlayerPMC(PlayerMovementController pmc)
+    {
+        playermCtrl = pmc;
+        playermCtrl.SetPlayerDataValue(currentPSD.rd);
+    }
+    /// <summary>
+    /// è·å–ç©å®¶å½“å‰ä¿¡æ¯å€¼
+    /// </summary>
+    /// <returns></returns>
+    public PlayerSaveData GetPSDValue()
+    {
+        return currentPSD;
     }
 
-    public PlayerData GetPDValue() {//»ñÈ¡Íæ¼Òµ±Ç°ĞÅÏ¢Öµ
-        return currentPD;
-    }
-
-
-    public void SetPDListValue(List<PlayerData> list)
-    { //ÉèÖÃËùÓĞÍæ¼ÒÁĞ±í
-        pdList = list;
-        SetSyncPDListValue();
-    }
-
-    public List<PlayerData> GetPDListValue()
-    {//»ñÈ¡ËùÓĞÍæ¼ÒÁĞ±í
-        return pdList;
-    }
-
-    public void SetSyncPDListValue()
-    { //ÉèÖÃÆäËûÍæ¼ÒÁĞ±í
-        syncPdList = new List<PlayerData>();
-        syncPMCDict = new Dictionary<string, SyncPMCtrl>();
-        for (int i=0;i<syncPdList.Count;i++) {
-            if (pdList[i].id != currentPD.id) {
-                syncPdList.Add(pdList[i]);
+    /// <summary>
+    /// è®¾ç½®é€‰æ‹©ç›®æ ‡å½“å‰ä¿¡æ¯å€¼
+    /// </summary>
+    /// <param name="pd"></param>
+    public void SetTargetPDValue(string id)
+    {
+        if (id=="")
+        {
+            currentTargetPD = null;
+        }
+        else
+        {
+            for (int i = 0; i < syncPdList.Count; i++)
+            {
+                if (syncPdList[i].id == id)
+                {
+                    currentTargetPD = syncPdList[i];
+                }
             }
         }
     }
-
-    public List<PlayerData> GetSyncPDListValue()
-    {//»ñÈ¡ÆäËûÍæ¼ÒÁĞ±í
-        return syncPdList;
+    /// <summary>
+    /// è·å–é€‰æ‹©ç›®æ ‡å½“å‰ä¿¡æ¯å€¼
+    /// </summary>
+    /// <returns></returns>
+    public PlayerData GetTargetPDValue()
+    {
+        return currentTargetPD;
     }
 
+    /// <summary>
+    /// è®¾ç½®å½“å‰æ¸¸æˆä¸­æ‰€æœ‰ç©å®¶åˆ—è¡¨ä¿¡æ¯å€¼
+    /// </summary>
+    /// <param name="pd"></param>
+    public void SetPDListValue(List<PlayerData> list)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (list[i].id != currentPSD.id)
+            {
+                syncPdList.Add(list[i]);
+            }
+        }
+    }
+    /// <summary>
+    /// è·å–å½“å‰æ¸¸æˆä¸­å…¶ä»–åˆ—è¡¨å½“å‰ä¿¡æ¯å€¼
+    /// </summary>
+    /// <returns></returns>
+    public List<PlayerData> GetSyncPDListValue()
+    {
+        return syncPdList;
+    }
+    /// <summary>
+    /// æ–°è¿›å…¥æ¸¸æˆç©å®¶çš„è§’è‰²ä¿¡æ¯
+    /// </summary>
     public void AddNewPlayerData(PlayerData pd, SyncPMCtrl spmc)
     {
         if (!syncPdList.Contains(pd))
@@ -361,21 +448,166 @@ public class NetSystem : INetSystem
         }
         syncPMCDict.Add(pd.id,spmc);
     }
-
+    /// <summary>
+    /// é€€å‡ºæ¸¸æˆç©å®¶çš„è§’è‰²ä¿¡æ¯
+    /// </summary>
     public void ExitPlayerData(PlayerData pd)
     {
         syncPdList.Remove(pd);
         syncPMCDict.Remove(pd.id);
     }
-    
+    /// <summary>
+    /// åŒæ­¥äººç‰©ä¿¡æ¯
+    /// </summary>
+    /// <param name="pt"></param>
     private void OnPTSyncCharacter(PTBase pt)
     {
         PTSyncCharacter ptsc = (PTSyncCharacter)pt;
-        if (ptsc.id == currentPD.id) return;
-        if (syncPMCDict.ContainsKey(ptsc.id))
+        if (ptsc.cd.id==currentPSD.id)//æ¥æ”¶åˆ°çš„ä¿¡æ¯æ˜¯å½“å‰å®¢æˆ·ç«¯ç©å®¶è‡ªå·±çš„ä¿¡æ¯
         {
-            syncPMCDict[ptsc.id].SyncPosAndRot(ptsc);
+            currentPSD.hp = ptsc.cd.hp; 
+            currentPSD.mana = ptsc.cd.mana;
+            playermCtrl.cFSM.ChangeState(ptsc.cd.characterState);
+            this.SendEvent<UpdatePlayerInfoEvent>(currentPSD);
+            return;
+        }
+        else//å…¶ä»–ç©å®¶çš„ä¿¡æ¯
+        {
+            //å½“å‰å®¢æˆ·ç«¯é€‰æ‹©çš„ç›®æ ‡å¾—ä¸ä¸ºç©ºï¼Œå‘è¿‡æ¥çš„è¿™ä¸ªä¿¡æ¯å°±æ˜¯æˆ‘ä»¬å½“å‰å®¢æˆ·ç«¯ç©å®¶
+            //é€‰ä¸­çš„ç›®æ ‡ç©å®¶çš„ä¿¡æ¯
+            if (currentTargetPD!=null&& ptsc.cd.id==currentTargetPD.id)
+            {
+                currentTargetPD.hp = ptsc.cd.hp;
+                currentTargetPD.mana = ptsc.cd.mana;
+                this.SendEvent<UpdateTargetInfoEvent>(currentTargetPD);
+            }
+            //Debug.Log("æ›´æ–°"+ ptsc.cd.id + "äººç‰©çš„ä¿¡æ¯");
+            //Debug.Log(ptsc.cd);
+            //Debug.Log(syncPMCDict);
+            if (syncPMCDict!=null&&syncPMCDict.ContainsKey(ptsc.cd.id))
+            {
+                //Debug.Log("æ›´æ–°"+ ptsc.cd.id+"äººç‰©çš„ä¿¡æ¯");
+                syncPMCDict[ptsc.cd.id].SyncPosAndRot(ptsc);
+            }
+        }
+       
+    }
+    /// <summary>
+    /// åŒæ­¥æ‰€æœ‰ç©å®¶é€‰æ‹©çš„ç›®æ ‡
+    /// </summary>
+    /// <param name="pt"></param>
+    private void OnPTSyncSetChoiceTarget(PTBase pt)
+    {
+        PTSyncSetChoiceTarget p = (PTSyncSetChoiceTarget)pt;
+        //å½“å‰å®¢æˆ·ç«¯ç©å®¶è‡ªå·±è®¾ç½®ç›®æ ‡
+        if (p.pID==currentPSD.id)
+        {
+            SetTargetPDValue(p.tID);
+            this.SendEvent<UpdateTargetInfoEvent>(currentTargetPD);
+        }
+        else
+        {
+            //å…¶ä»–éœ€è¦åŒæ­¥çš„ç©å®¶å»è®¾ç½®ç›®æ ‡
+            if (syncPMCDict.ContainsKey(p.pID))//å®‰å…¨æ ¡éªŒ
+            {
+                if (syncPMCDict.ContainsKey(p.tID))//æ ¡éªŒç›®æ ‡,å­˜åœ¨äºéœ€è¦åŒæ­¥çš„ç©å®¶å­—å…¸é‡Œ
+                {
+                    syncPMCDict[p.pID].targetTrans = syncPMCDict[p.tID].transform;
+                }
+                else//å½“å‰éœ€è¦è®¾ç½®ä¸ºå…¶ä»–äººç‰©ç›®æ ‡çš„äººæ˜¯æˆ‘ä»¬è‡ªå·±ï¼ˆå½“å‰å®¢æˆ·ç«¯ç©å®¶ï¼‰
+                {
+                    if (p.tID=="")
+                    {
+                        syncPMCDict[p.pID].targetTrans = null;
+                    }
+                    else
+                    {
+                        syncPMCDict[p.pID].targetTrans = playermCtrl.transform;
+                    }
+                }
+            }
+        }
+
+    }
+    /// <summary>
+    /// åˆ¤å®šå¹¶åŒæ­¥æ”»å‡»çŠ¶æ€
+    /// </summary>
+    /// <param name="pt"></param>
+    public void OnPTSyncAttack(PTBase pt)
+    {
+        PTSyncAttack p = (PTSyncAttack)pt;
+        if (p.pID==currentPSD.id)//å½“å‰å®¢æˆ·ç«¯è¿›å…¥æˆ˜æ–—çŠ¶æ€
+        {
+            //Debug.Log("å½“å‰å®¢æˆ·ç«¯ç©å®¶è¿›å…¥"+p.pID+ p.canBeBattle);
+            playermCtrl.cFSM.beBattle = p.canBeBattle;
+        }
+        else
+        {
+            //Debug.Log("å…¶ä»–å®¢æˆ·ç«¯ç©å®¶è¿›å…¥" + p.pID + p.canBeBattle);
+            syncPMCDict[p.pID].cFSM.beBattle = p.canBeBattle;
         }
     }
-
+    /// <summary>
+    /// æœ‰äººç‰©è¿›å…¥æˆ–é€€å‡ºAOI
+    /// </summary>
+    /// <param name="pt"></param>
+    public void OnPTSyncEnterOrLeaveAOI(PTBase pt)
+    {
+        PTSyncEnterOrLeaveAOI p = (PTSyncEnterOrLeaveAOI)pt;
+        if (p.otherPlayerCDList.Count>0)
+        {
+            for (int i = 0; i < p.otherPlayerCDList.Count; i++)
+            {
+                HandleAOIUpdateInfo(p, p.otherPlayerCDList[i]);
+            }
+        }
+        else
+        {
+            HandleAOIUpdateInfo(p,p.pd);
+        }
+    }
+    private void HandleAOIUpdateInfo(PTSyncEnterOrLeaveAOI p,PlayerData pd)
+    {
+        if (pd.id != currentPSD.id)//åªå¤„ç†å…¶ä»–äººç‰©
+        {
+            if (syncPMCDict.ContainsKey(pd.id))
+            {
+                syncPMCDict[pd.id].gameObject.SetActive(p.enterAOI);
+                //å…ˆæ›´æ–°çŠ¶æ€ä¿¡æ¯
+                if (p.enterAOI)
+                {
+                    Vector3 pos = new Vector3(pd.x, pd.y, pd.z);
+                    Vector3 rot = new Vector3(pd.ex, pd.ey, pd.ez);
+                    syncPMCDict[pd.id].ImmediateUpdateSyncPosAndRot(pos, rot, pd.characterState);
+                }
+            }
+            else
+            {
+                if (pd.id==""|| !p.enterAOI)
+                {
+                    return;
+                }
+                //ç¬¬ä¸€æ¬¡è¿›å…¥æˆ‘ä»¬å½“å‰å®¢æˆ·ç«¯ç©å®¶çš„è§†é‡èŒƒå›´æ—¶
+                //ç”Ÿæˆ
+                //ç”Ÿæˆæ–°è¿›å…¥ç©å®¶çš„è§’è‰²æ¸¸æˆç‰©ä½“
+                GameObject newGo = GameObject.Instantiate(GameResSystem.GetRes<GameObject>("Prefabs/Character/SyncPlayer"),
+                    new Vector3(pd.x, pd.y, pd.z), Quaternion.Euler(pd.ex, pd.ey, pd.ez));
+                newGo.name = pd.id;
+                SyncPMCtrl spmc = newGo.GetComponent<SyncPMCtrl>();
+                spmc.isAI = pd.isAI;
+                spmc.InitDressState(pd);
+                AddNewPlayerData(pd, spmc);
+            }
+        }
+    }
+    /// <summary>
+    /// æ”¶åˆ°æœåŠ¡å™¨å›çš„èƒŒåŒ…ä¿¡æ¯
+    /// </summary>
+    /// <param name="pt"></param>
+    private void OnPTGetInventoryItemList(PTBase pt)
+    {
+        PTGetInventoryItemList p = (PTGetInventoryItemList)pt;
+        currentPSD.slotsList = JsonUtility.FromJson<InventoryItemList>(p.inventoryItemListJson).slotsList;
+        this.SendEvent<InitInventoryItemSlotsEvent>();
+    }
 }

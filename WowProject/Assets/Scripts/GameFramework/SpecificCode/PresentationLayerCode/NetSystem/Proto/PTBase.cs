@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-//通信协议基类
-public class PTBase 
+//*****************************************
+//鍒涘缓浜猴細 Trigger 
+//鍔熻兘璇存槑锛氶�氫俊鍗忚鍩虹被
+//***************************************** 
+public class PTBase
 {
     public string protoName;
-
 }

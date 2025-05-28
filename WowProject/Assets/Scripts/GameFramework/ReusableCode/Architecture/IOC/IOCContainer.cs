@@ -1,43 +1,61 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using System;
+//*****************************************
+//创建人： Trigger 
+//功能说明：IOC容器，保存所有层级以及各个模块的实例
+//***************************************** 
 public class IOCContainer
 {
-    private Dictionary<Type,object> instanceDict = new Dictionary<Type, object> ();
-
-    public void Register<T>(T instance) {
+    /// <summary>
+    /// 实例字典
+    /// </summary>
+    private Dictionary<Type, object> instancesDict = new Dictionary<Type, object>();
+    /// <summary>
+    /// 注册
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="instance"></param>
+    public void Register<T>(T instance)
+    {
         var key = typeof(T);
-        if (instanceDict.ContainsKey(key)) {
-            instanceDict[key] = instance;
+        if (instancesDict.ContainsKey(key))
+        {
+            instancesDict[key] = instance;
         }
-        else { 
-        instanceDict.Add(key, instance);
+        else
+        {
+            instancesDict.Add(key,instance);
         }
     }
-
-    public T Get<T>() where T : class {
-
+    /// <summary>
+    /// 获取实例
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public T Get<T>() where T : class
+    {
         var key = typeof(T);
         object obj = null;
-        if (instanceDict.TryGetValue(key, out obj)) {
+        if (instancesDict.TryGetValue(key,out obj))
+        {
             return obj as T;
         }
-        else {
-            Debug.Log("��ȡ�Ķ���Ϊ��");       
+        else
+        {
+            Debug.Log("想要获取的对象为空");
         }
-        return null;    
-        
+        return null;
     }
-
-    public void InitAllModules() {
-        foreach (var item in instanceDict) {
+    /// <summary>
+    /// 调用容器中所有实例的初始化方法
+    /// </summary>
+    public void InitAllModules()
+    {
+        foreach (var item in instancesDict)
+        {
             ((INeedInit)item.Value).Init();
         }
     }
-
-
-
-
 }

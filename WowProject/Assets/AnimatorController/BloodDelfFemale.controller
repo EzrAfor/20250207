@@ -537,7 +537,7 @@ AnimatorController:
     m_Type: 4
     m_DefaultFloat: 0
     m_DefaultInt: 0
-    m_DefaultBool: 1
+    m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
   - m_Name: Yaw
     m_Type: 1
@@ -745,7 +745,7 @@ AnimatorStateMachine:
     m_Position: {x: 250, y: 20, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -1319784436154486030}
-    m_Position: {x: 610, y: -210, z: 0}
+    m_Position: {x: 620, y: -210, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -8774839634310403218}
     m_Position: {x: 610, y: 10, z: 0}
@@ -761,7 +761,7 @@ AnimatorStateMachine:
   m_StateMachineTransitions: {}
   m_StateMachineBehaviours: []
   m_AnyStatePosition: {x: -70, y: 80, z: 0}
-  m_EntryPosition: {x: -180, y: -90, z: 0}
+  m_EntryPosition: {x: -140, y: -100, z: 0}
   m_ExitPosition: {x: 530, y: 210, z: 0}
   m_ParentStateMachinePosition: {x: 850, y: -100, z: 0}
   m_DefaultState: {fileID: 6057237776979292500}

@@ -1,106 +1,110 @@
-using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering.VirtualTexturing;
-using UnityEngine.UIElements;
-
+//*****************************************
+//åˆ›å»ºäººï¼š Trigger 
+//åŠŸèƒ½è¯´æ˜ï¼šé€‰æ‹©äººç‰©ç•Œé¢çš„è§’è‰²å±•ç¤º
+//***************************************** 
 public class ChoiceCharacterDress : MonoBehaviour,IController
 {
-    private SkinnedMeshRenderer[] smrs;
+    //private SkinnedMeshRenderer[] smrs;
     private GameObject[] gos;
+    public GameObject currentCharacterGo;//å½“å‰äººç‰©æ§åˆ¶çš„æ¸¸æˆç‰©ä½“
+    public float initAngle=90;
+    public float offsetAngle;
     //private IUISystem uiSystem;
-    public GameObject currentCharacterGo;
-    private float initAngle=90f;
-    private float offsetAngle;
+
     private void Awake()
     {
-        smrs = new SkinnedMeshRenderer[2];
+        //smrs = new SkinnedMeshRenderer[2];
         gos = new GameObject[2];
         for (int i = 0; i < gos.Length; i++)
         {
             gos[i] = transform.GetChild(i).gameObject;
-            smrs[i] = gos[i].GetComponentInChildren<SkinnedMeshRenderer>();
-
+            //smrs[i] = gos[i].GetComponentInChildren<SkinnedMeshRenderer>();
         }
-        //uiSystem = this.GetSystem<IUISystem>();
-        this.RegisterEvent<RotateCharacterModelEvent>(RotateCharacterModel);
-        this.RegisterEvent<SetMaterialEvent>(SetMaterial);
-        this.RegisterEvent<RotateModelEvent>(RotateModel);
-        this.RegisterEvent<RotateModelAngleEvent>(RotateModelAngle);
+        this.RegistEvent<SetMaterialEvent>(SetMaterial);
+        this.RegistEvent<RotateModelEvent>(RotateModel);
+        this.RegistEvent<ResetModelAngleEvent>(ResetModelAngle);
     }
 
-    private void Update()
+    void Update()
     {
+
     }
 
-
-
-    public void SetMaterial(object obj) 
-    {        
+    public void SetMaterial(object obj)
+    {
         PlayerData pd = (PlayerData)obj;
         for (int i = 0; i < gos.Length; i++)
-        {            
+        {
             gos[i].SetActive(false);
         }
-        currentCharacterGo = gos[(int)pd.gender];
+        currentCharacterGo=gos[(int)pd.gender];
         currentCharacterGo.SetActive(true);
-        Material m = GameResSystem.GetRes<Material>("Materials/"+pd.gender.ToString()+"/"+(int)pd.role);
-        for (int i = 0; i < smrs[(int)pd.gender].sharedMaterials.Length; i++) {
-            if (pd.gender == GENDER.MALE) {
-
-                if (i != 1 && i != 2 && i != 10)
-                {
-                    smrs[(int)pd.gender].materials[i].CopyPropertiesFromMaterial(m);
-                }
-            }
-            else {
-                if (i != 0 && i != 2 && i != 10)
-                {
-                    smrs[(int)pd.gender].materials[i].CopyPropertiesFromMaterial(m);
-                }
-            }            
-        }
+        //Material m = GameResSystem.GetRes<Material>("Materials/"+pd.gender.ToString()+"/"+(int)pd.role);
+        //for (int i = 0; i < smrs[(int)pd.gender].sharedMaterials.Length; i++)
+        //{
+        //    if (pd.gender==GENDER.MALE)
+        //    {
+        //        if (i!=1&&i!=2&&i!=10)
+        //        {
+        //            smrs[(int)pd.gender].materials[i].CopyPropertiesFromMaterial(m);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        if (i != 0 && i != 2 && i != 10)
+        //        {
+        //            smrs[(int)pd.gender].materials[i].CopyPropertiesFromMaterial(m);
+        //        }
+        //    }
+        //}
     }
-
-    private void RotateCharacterModel(object rotateSrc) {//ÓÎÏ·ÄÚÄ£ĞÍĞı×ª
-        if (!currentCharacterGo) return;
-        RotateModelSrc rs = (RotateModelSrc)rotateSrc;
-        float h = rs.h;
-        float v = rs.v;
-        if (v != 0) {//Ç°ºó
-            if (v > 0)//×óÉÏÓÒÉÏ
+    /// <summary>
+    /// æ—‹è½¬äººç‰©æ¨¡å‹(æ¸¸æˆä¸­)
+    /// </summary>
+    /// <param name="roateSrc"></param>
+    public void RotateCharacterModel(float h,float v)
+    {
+        if (!currentCharacterGo)
+        {
+            return;
+        }
+        if (v != 0)//å‰å
+        {
+            if (v > 0)//å·¦ä¸Šå³ä¸Š
             {
                 offsetAngle = 45 * h;
             }
-            else
-            {//×óÏÂÓÒÏÂ
+            else//å·¦ä¸‹å³ä¸‹
+            {
                 offsetAngle = -45 * h;
             }
         }
-        else {//×óÓÒ
-            if (h != 0) {//Õı×óÕıÓÒ
+        else//å·¦å³
+        {
+            if (h != 0)//æ­£å·¦æ­£å³
+            {
                 offsetAngle = 90 * h;
             }
-            else//ÕıÇ°·½
+            else//æ­£å‰æ–¹
             {
                 offsetAngle = 0;
-
             }
         }
-        currentCharacterGo.transform.localEulerAngles=new Vector3(0,initAngle+offsetAngle,0);
-        this.SendEvent<GetLookTargetIndexEvent>(offsetAngle);
+        currentCharacterGo.transform.localEulerAngles = new Vector3(0, initAngle + offsetAngle, 0);
     }
-
+    /// <summary>
+    /// æ—‹è½¬é€‰æ‹©ç•Œé¢äººç‰©çš„æ¨¡å‹
+    /// </summary>
+    /// <param name="angle"></param>
     private void RotateModel(object angle)
     {
         currentCharacterGo.transform.localEulerAngles += new Vector3(0, (float)angle, 0);
     }
-    private void RotateModelAngle(object obj)
+    private void ResetModelAngle(object obj)
     {
-    currentCharacterGo.transform.localEulerAngles = new Vector3(0,-90,0);
+        currentCharacterGo.transform.localEulerAngles = new Vector3(0, -90, 0);
     }
-
-
 }
-

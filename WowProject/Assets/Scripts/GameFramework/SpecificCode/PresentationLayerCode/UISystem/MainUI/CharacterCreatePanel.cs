@@ -1,14 +1,14 @@
-using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.Analytics;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
-
+//*****************************************
+//åˆ›å»ºäººï¼š Trigger 
+//åŠŸèƒ½è¯´æ˜ï¼šäººç‰©åˆ›å»ºé¢æ¿
+//***************************************** 
 public class CharacterCreatePanel : BasePanel
 {
-
     private Button rotateLeftBtn;
     private Button rotateRightBtn;
     private Button exitBtn;
@@ -22,101 +22,94 @@ public class CharacterCreatePanel : BasePanel
     private List<Transform> roleTrans = new List<Transform>();
     private bool startRotating;
 
-
-
     public override void OnInit()
     {
-        base.OnInit();
         rotateLeftBtn = DeepFindTransform.DeepFindChild(transform, "Btn_RotateLeft").GetComponent<Button>();
-        rotateRightBtn = DeepFindTransform.DeepFindChild(transform, "Btn_RotateRight").GetComponent<Button>();
-        exitBtn = DeepFindTransform.DeepFindChild(transform, "Btn_Agree").GetComponent<Button>();
-        agreeBtn = DeepFindTransform.DeepFindChild(transform, "Btn_Exit").GetComponent<Button>();
-        nameIF = DeepFindTransform.DeepFindChild(transform, "IF_Name").GetComponent<InputField>();
         rotateLeftBtn.onClick.AddListener(OnLeftRotateCharacterClick);
+        rotateRightBtn = DeepFindTransform.DeepFindChild(transform, "Btn_RotateRight").GetComponent<Button>();
         rotateRightBtn.onClick.AddListener(OnRightRotateCharacterClick);
-        exitBtn.onClick.AddListener(OnAgreeCreateClick);
-        agreeBtn.onClick.AddListener(OnReturnToChoicePanelClick);
+        exitBtn = DeepFindTransform.DeepFindChild(transform, "Btn_Exit").GetComponent<Button>();
+        exitBtn.onClick.AddListener(OnReturnToChoicePanelClick);
+        agreeBtn = DeepFindTransform.DeepFindChild(transform, "Btn_Agree").GetComponent<Button>();
+        agreeBtn.onClick.AddListener(OnAgreeCreateClick);
+        nameIF = DeepFindTransform.DeepFindChild(transform, "IF_Name").GetComponent<InputField>();
+        //æ€§åˆ«
         maleTGGo = DeepFindTransform.DeepFindChild(transform, "TG_RaceMale").gameObject;
         femaleTGGo = DeepFindTransform.DeepFindChild(transform, "TG_RaceFemale").gameObject;
         Transform sexListTrans = DeepFindTransform.DeepFindChild(transform, "Emp_SexList");
-        //Ñ¡ÔñĞÔ±ğ
-        sexListTrans.GetChild(0).GetComponent<Toggle>().onValueChanged.AddListener(
-            (bool seleceted) =>
+        //é€‰æ‹©æ€§åˆ«
+        sexListTrans.GetChild(0).GetComponent<Toggle>().onValueChanged.AddListener((bool selected) =>
+        {
+            if (selected)
             {
-                if (seleceted)
-                {
-                    maleTGGo.SetActive(true);
-                    femaleTGGo.SetActive(false);
-                    playerData.gender = GENDER.MALE;
-                    this.SendEvent<SetMaterialEvent>(playerData);
-                }
+                maleTGGo.SetActive(true);
+                femaleTGGo.SetActive(false);
+                playerData.gender = GENDER.MALE;
+                this.SendEvent<SetMaterialEvent>(playerData);
             }
-            );
-        sexListTrans.GetChild(1).GetComponent<Toggle>().onValueChanged.AddListener(
-           (bool seleceted) =>
-           {
-               if (seleceted)
-               {
-                   maleTGGo.SetActive(false);
-                   femaleTGGo.SetActive(true);
-                   playerData.gender = GENDER.FEMALE;
-                   this.SendEvent<SetMaterialEvent>(playerData);
-               }
-           }
-           );
-        //Ñ¡ÔñÖÖ×å
-        //ÄĞ
+        });
+        sexListTrans.GetChild(1).GetComponent<Toggle>().onValueChanged.AddListener((bool selected) =>
+        {
+            if (selected)
+            {
+                maleTGGo.SetActive(false);
+                femaleTGGo.SetActive(true);
+                playerData.gender = GENDER.FEMALE;
+                this.SendEvent<SetMaterialEvent>(playerData);
+            }
+        });
+        //é€‰æ‹©ç§æ—
+        //ç”·
         for (int i = 0; i < 10; i++)
         {
             Transform t = maleTGGo.transform.GetChild(i);
             maleRaceTrans.Add(t);
-            t.GetComponent<Toggle>().onValueChanged.AddListener(
-           (bool seleceted) =>
-           {
-               if (seleceted)
-               {
-                   playerData.race = (RACE)maleRaceTrans.IndexOf(t);
-                   this.SendEvent<SetMaterialEvent>(playerData);
-               }
-           }
-           );
+            t.GetComponent<Toggle>().onValueChanged.AddListener((bool selected) =>
+            {
+                if (selected)
+                {
+                    playerData.race = (RACE)maleRaceTrans.IndexOf(t);
+                    this.SendEvent<SetMaterialEvent>(playerData);
+                }
+            });
         }
-        //Å®
+        //å¥³
         for (int i = 0; i < 10; i++)
         {
             Transform t = femaleTGGo.transform.GetChild(i);
             femaleRaceTrans.Add(t);
-            t.GetComponent<Toggle>().onValueChanged.AddListener(
-           (bool seleceted) =>
-           {
-               if (seleceted)
-               {
-                   playerData.race = (RACE)femaleRaceTrans.IndexOf(t);
-                   this.SendEvent<SetMaterialEvent>(playerData);
-               }
-           }
-           );
+            t.GetComponent<Toggle>().onValueChanged.AddListener((bool selected) =>
+            {
+                if (selected)
+                {
+                    playerData.race = (RACE)maleRaceTrans.IndexOf(t);
+                    this.SendEvent<SetMaterialEvent>(playerData);
+                }
+            });
         }
-        //Ö°Òµ
+        //èŒä¸š
         Transform roleListTrans = DeepFindTransform.DeepFindChild(transform, "Emp_RoleList");
         for (int i = 0; i < 10; i++)
         {
             Transform t = roleListTrans.GetChild(i);
             roleTrans.Add(t);
-            t.GetComponent<Toggle>().onValueChanged.AddListener(
-           (bool seleceted) =>
-           {
-               if (seleceted)
-               {
-                   playerData.role = (ROLE)roleTrans.IndexOf(t);
-                   this.SendEvent<SetMaterialEvent>(playerData);
-               }
-           }
-           );
+            t.GetComponent<Toggle>().onValueChanged.AddListener((bool selected) =>
+            {
+                if (selected)
+                {
+                    playerData.role = (ROLE)roleTrans.IndexOf(t);
+                    this.SendEvent<SetMaterialEvent>(playerData);
+                }
+            });
         }
-        this.SendCommand<RegistPTListenerCommand>(new PTSrc() { ptName = "PTCreateNewCharacter", listener = OnPTCreateNewCharacter });
-
+        this.SendCommand<RegistPTListenerCommand>
+            (new PTSrc()
+            { ptName = "PTCreateNewCharacter", 
+                listener = OnPTCreateNewCharacter
+            });
+        base.OnInit();
     }
+
     private void Update()
     {
         if (Input.GetMouseButton(0))
@@ -129,73 +122,80 @@ public class CharacterCreatePanel : BasePanel
         }
         if (startRotating)
         {
-            this.SendEvent<RotateModelEvent>(Input.GetAxisRaw("Mouse X") * 2);
+            this.SendEvent<RotateModelEvent>(Input.GetAxisRaw("Mouse X")*2);
         }
     }
+
+    /// <summary>
+    /// å‘å·¦æ—‹è½¬é€‰æ‹©äººç‰©æ¨¡å‹
+    /// </summary>
     private void OnLeftRotateCharacterClick()
     {
         this.SendEvent<RotateModelEvent>(-45f);
     }
-
+    /// <summary>
+    /// å‘å³æ—‹è½¬é€‰æ‹©äººç‰©æ¨¡å‹
+    /// </summary>
     private void OnRightRotateCharacterClick()
     {
         this.SendEvent<RotateModelEvent>(45f);
     }
-
+    /// <summary>
+    /// è¿”å›è§’è‰²é€‰æ‹©é¢æ¿
+    /// </summary>
     private void OnReturnToChoicePanelClick()
     {
         OnClose();
         uiSystem.OpenPanel<ChoicePanel>();
     }
-
+    /// <summary>
+    /// åŒæ„è§’è‰²åˆ›å»º
+    /// </summary>
     private void OnAgreeCreateClick()
     {
-        if (nameIF.text == null || nameIF.text.Contains(" "))
+        if (nameIF.text==null||nameIF.text.Contains(" "))
         {
-            uiSystem.OpenPanel<TipPanel>("Ãû×Ö²»ÄÜÎª¿ÕÇÒ²»ÄÜ°üº¬¿Õ¸ñ");
+            uiSystem.OpenPanel<TipPanel>("åå­—ä¸èƒ½ä¸ºç©ºä¸”ä¸èƒ½åŒ…å«ç©ºæ ¼");
             return;
         }
-        //Ìî³äplayerdata
         playerData.id = nameIF.text;
         playerData.level = 1;
-        playerData.x = -46.38f;
-        playerData.y = 0.825f;
-        playerData.z = -11.83f;
+        playerData.x = 0;
+        playerData.y = 0;
+        playerData.z = 0;
         playerData.ex = playerData.ey = playerData.ez = 0;
-        playerData.hp = 100;
-        playerData.mp = 100;
-        //×ª³Éjson·¢ËÍ¸ø·şÎñÆ÷
-        PTCreateNewCharacter pnc = new PTCreateNewCharacter();
-        pnc.playDataJson = JsonUtility.ToJson(playerData);
+        PTCreateNewCharacter pnc= new PTCreateNewCharacter();
+        pnc.playerDataJson = JsonUtility.ToJson(playerData);
         this.SendCommand<SendPTCommand>(pnc);
-
-
     }
-
-    public void OnPTCreateNewCharacter(PTBase pt)
+    /// <summary>
+    /// æ”¶åˆ°åˆ›å»ºè§’è‰²æˆåŠŸåè®®
+    /// </summary>
+    /// <param name="pt"></param>
+    private void OnPTCreateNewCharacter(PTBase pt)
     {
         PTCreateNewCharacter pnc = (PTCreateNewCharacter)pt;
-        if (pnc.result == 0)
+        if (pnc.result==0)
         {
-            uiSystem.OpenPanel<TipPanel>("´´½¨³É¹¦");
+            uiSystem.OpenPanel<TipPanel>("åˆ›å»ºæˆåŠŸ");
+            this.SendEvent<SetChoiceIDEvent>();
             uiSystem.OpenPanel<ChoicePanel>();
+            PlayerData pd = JsonUtility.FromJson<PlayerData>(pnc.playerDataJson);
+            this.SendCommand<SetPDValueCommand>(pd);
             OnClose();
         }
         else
         {
-            uiSystem.OpenPanel<TipPanel>("´´½¨Ê§°Ü,ÇëÖØÊÔ", true);
+            uiSystem.OpenPanel<TipPanel>("åˆ›å»ºå¤±è´¥ï¼Œè¯·é‡è¯•",true);
         }
     }
-
 
     public override void OnShow(params object[] objs)
     {
         this.SendEvent<LoadOrDestoryPlayerModelGameObjectsEvent>(true);
-        playerData = new PlayerData() { gender = GENDER.MALE, role = ROLE.PALADIN, race = RACE.BLOODELF };//Ä¬ÈÏÖµ
+        playerData = new PlayerData() { gender=GENDER.MALE,role=ROLE.PALADIN,race=RACE.BLOODELF};
         this.SendEvent<SetMaterialEvent>(playerData);
-        this.SendEvent<RotateModelAngleEvent>();
+        this.SendEvent<ResetModelAngleEvent>();
         base.OnShow(objs);
     }
-
-
 }

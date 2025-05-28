@@ -2,8 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 //*****************************************
-//´´½¨ÈË£º Trigger 
-//¹¦ÄÜËµÃ÷£ºÆô¶¯¿ò¼ÜµÄÆô¶¯Æ÷£¨Æô¶¯Èë¿Ú£©
+//åˆ›å»ºäººï¼š Trigger 
+//åŠŸèƒ½è¯´æ˜ï¼šå¯åŠ¨æ¡†æ¶çš„å¯åŠ¨å™¨ï¼ˆå¯åŠ¨å…¥å£ï¼‰
 //***************************************** 
 public class StartArchitecture : Singleton<StartArchitecture>, ISingleton
 {
@@ -13,21 +13,21 @@ public class StartArchitecture : Singleton<StartArchitecture>, ISingleton
 
     public void Init() { }
     /// <summary>
-    /// ÊµÀı»¯²¢ÉèÖÃ²»Í¬ÏîÄ¿µÄ¼Ü¹¹
+    /// å®ä¾‹åŒ–å¹¶è®¾ç½®ä¸åŒé¡¹ç›®çš„æ¶æ„
     /// </summary>
     public void SetGameArchitecture(IArchitecture architecture)
     {
         gameArchitecture = architecture;
     }
     /// <summary>
-    /// »ñÈ¡¼Ü¹¹ÊµÀı
+    /// è·å–æ¶æ„å®ä¾‹
     /// </summary>
     public IArchitecture GetArchitecture()
     {
         return gameArchitecture;
     }
     /// <summary>
-    /// ³õÊ¼»¯¿ò¼ÜÖĞµÄËùÓĞÄ£¿é
+    /// åˆå§‹åŒ–æ¡†æ¶ä¸­çš„æ‰€æœ‰æ¨¡å—
     /// </summary>
     public void InitAllModulesInArchitecture()
     {

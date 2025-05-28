@@ -1,40 +1,58 @@
-//ÏûÏ¢Êı¾İ½á¹¹¶ÔÏó
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 using System;
-
-public class ByteObject 
+//*****************************************
+//åˆ›å»ºäººï¼š Trigger 
+//åŠŸèƒ½è¯´æ˜ï¼šæ¶ˆæ¯æ•°æ®ç»“æ„å¯¹è±¡
+//***************************************** 
+public class ByteObject
 {
+    //é»˜è®¤å¤§å°
     private const int DEFAULTSIZE = 1024;
+    //èµ·å§‹å¤§å°
     private int initSize;
-    private int capacity = 0;//»º³åÇøÈİÁ¿ 
-    
+    //ç¼“å†²åŒº
+    public byte[] bytes;
+    //ç¼“å†²åŒºå®¹é‡
+    private int capacity;
+    //å½“å‰ç¼“å†²åŒºè¯»å†™ä½ç½®
+    public int readIndex;
+    public int writeIndex;
+    //å‰©ä½™ç©ºé—´
+    public int remainLength { get { return capacity - writeIndex; } }
+    //æ•°æ®é•¿åº¦
+    public int dataLength { get { return writeIndex - readIndex; } }
 
-    public byte[] bytes ;//»º³åÇø
-    public int readIndex;//»º³åÇø¶ÁĞ´Î»ÖÃ
-    public int writeIndex;//Êı¾İ³¤¶ÈµÄÖ¸Õë
-    
-    public int remainLength { get { return capacity-writeIndex; } }//Ê£Óà»º³åÇøµÄ¿Õ¼ä
-    
-    public int dataLength { get { return writeIndex - readIndex; } }//Ê£Óà¶ÁÈ¡Êı¾İµÄ³¤¶È
-
-    public ByteObject(byte[] defaultBytes) {
-        bytes = defaultBytes;        
-        capacity = initSize = writeIndex = defaultBytes.Length;
-        readIndex = 0;
+    public ByteObject(byte[] defaultBytes)
+    {
+        bytes = defaultBytes;
+        capacity=initSize= writeIndex = defaultBytes.Length;
+        readIndex = 0;        
     }
-
-    public ByteObject(int size = DEFAULTSIZE) { 
+    public ByteObject(int size=DEFAULTSIZE)
+    {
         bytes = new byte[size];
-        initSize = capacity = size;
+        capacity=initSize = size;
         readIndex = writeIndex = 0;
-
-
     }
-
-    public void ReSize(int size) {
-        if (size < dataLength)  return;
-        if (size < initSize) return;
+    /// <summary>
+    /// æ‰©å®¹ç¼“å†²åŒºå¤§å°
+    /// </summary>
+    /// <param name="size">æ•°æ®é•¿åº¦</param>
+    public void ReSize(int size)
+    {
+        if (size<dataLength)
+        {
+            return;
+        }
+        if (size<initSize)
+        {
+            return;
+        }
         int useCapicity = 1;
-        while (useCapicity < size) {
+        while (useCapicity < size)
+        {
             useCapicity *= 2;
         }
         capacity = useCapicity;
@@ -42,19 +60,25 @@ public class ByteObject
         Array.Copy(bytes,readIndex,newBytes,0,writeIndex-readIndex);
         bytes = newBytes;
         writeIndex = dataLength;
-        readIndex=0;
+        readIndex = 0;
     }
-
-    public void CheckAndMoveBytes() {//¼ì²é²¢ÒÆ¶¯Êı¾İs
-        if (dataLength < 8) { 
-        MoveBytes();
+    /// <summary>
+    /// æ£€æŸ¥å¹¶ç§»åŠ¨æ•°æ®
+    /// </summary>
+    public void CheckAndMoveBytes()
+    {
+        if (dataLength<8)
+        {
+            MoveBytes();
         }
     }
-
-    public void MoveBytes() {
-        Array.Copy(bytes,readIndex,bytes,0,dataLength);
+    /// <summary>
+    /// å…·ä½“çš„ç§»åŠ¨æ•°æ®æ–¹æ³•
+    /// </summary>
+    public void MoveBytes()
+    {
+        Array.Copy(bytes, readIndex, bytes, 0, dataLength);
         writeIndex = dataLength;
         readIndex = 0;
     }
-
 }

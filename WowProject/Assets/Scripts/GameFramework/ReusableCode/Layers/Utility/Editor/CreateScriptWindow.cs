@@ -5,6 +5,7 @@ using System.Text;
 using System;
 using System.Text.RegularExpressions;
 //*****************************************
+//创建人： Trigger 
 //功能说明： 创建脚本窗口
 //***************************************** 
 public class CreateScriptWindow : EditorWindow
@@ -12,7 +13,7 @@ public class CreateScriptWindow : EditorWindow
     const string EVENTTEMPLATE_PATH = "Assets/Scripts/GameFramework/ReusableCode/Layers//Utility/Editor/EventTemplateScript.txt";//模板路径 
     const string COMMANDTEMPLATE_PATH = "Assets/Scripts/GameFramework/ReusableCode/Layers/Utility/Editor/CommandTemplateScript.txt";//模板路径
 
-    [MenuItem("Assets/Create/C# Event Script(Command)")]        
+    [MenuItem("Assets/Create/C# Event Script(Command)")]
     static void AssetsCreate()
     {
         CreateScriptWindow window = (CreateScriptWindow)GetWindow(typeof(CreateScriptWindow), false, "创建C#");

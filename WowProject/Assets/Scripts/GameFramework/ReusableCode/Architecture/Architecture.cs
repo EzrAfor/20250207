@@ -2,6 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+//*****************************************
+//创建人： Trigger 
+//功能说明：架构抽象基类
+//***************************************** 
 public abstract class Architecture<T> : IArchitecture where T : new()
 {
     private IOCContainer iocContainer = new IOCContainer();
@@ -14,22 +18,22 @@ public abstract class Architecture<T> : IArchitecture where T : new()
         iocContainer.InitAllModules();
     }
 
-    public void RegisterEvent<U>(Action<object> onEvent) where U : new()
+    public void RegistEvent<U>(Action<object> onEvent) where U : new()
     {
-        gameEventSystem.Register<U>(onEvent);
+        gameEventSystem.Regist<U>(onEvent);
     }
 
-    public void RegisterModel<U>(U instance) where U : IModel
-    {
-        iocContainer.Register<U>(instance);
-    }
-
-    public void RegisterSystem<U>(U instance) where U : ISystem
+    public void RegistModel<U>(U instance) where U : IModel
     {
         iocContainer.Register<U>(instance);
     }
 
-    public void RegisterUtility<U>(U instance) where U : IUtility
+    public void RegistSystem<U>(U instance) where U : ISystem
+    {
+        iocContainer.Register<U>(instance);
+    }
+
+    public void RegistUtility<U>(U instance) where U : IUtility
     {
         iocContainer.Register<U>(instance);
     }
@@ -45,9 +49,9 @@ public abstract class Architecture<T> : IArchitecture where T : new()
         gameEventSystem.Send<U>(dataObj);
     }
 
-    public void UnRegisterEvent<U>(Action<object> onEvent) where U : new()
+    public void UnRegistEvent<U>(Action<object> onEvent) where U : new()
     {
-        gameEventSystem.UnRegister<U>(onEvent);
+        gameEventSystem.UnRegist<U>(onEvent);
     }
 
     protected abstract void Init();

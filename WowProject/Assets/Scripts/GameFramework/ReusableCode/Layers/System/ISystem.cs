@@ -1,8 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public interface ISystem :INeedInit,ICanSendCommand,ICanSendEvent,ICanRegisterAndUnregisterEvent    
+//*****************************************
+//创建人： Trigger 
+//功能说明：系统层接口
+//***************************************** 
+public interface ISystem :INeedInit,ICanSendCommand,ICanSendEvent,ICanRegistAndUnRegistEvent
 {
-   
+    
 }

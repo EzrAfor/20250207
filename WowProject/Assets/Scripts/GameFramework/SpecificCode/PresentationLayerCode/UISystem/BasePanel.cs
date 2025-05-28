@@ -1,8 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public class BasePanel : MonoBehaviour, IBasePanel
+//*****************************************
+//创建人： Trigger 
+//功能说明：面板基类
+//***************************************** 
+public class BasePanel : MonoBehaviour,IBasePanel
 {
     protected IUISystem uiSystem;
 

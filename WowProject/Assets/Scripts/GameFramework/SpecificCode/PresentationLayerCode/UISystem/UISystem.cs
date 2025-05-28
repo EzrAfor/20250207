@@ -1,18 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
-
+//*****************************************
+//åˆ›å»ºäººï¼š Trigger 
+//åŠŸèƒ½è¯´æ˜ï¼šUIç³»ç»Ÿ
+//***************************************** 
 public class UISystem : IUISystem
 {
+
     private Dictionary<string, BasePanel> panelDict = new Dictionary<string, BasePanel>();
     private Transform canvasTrans;
+    private PlayerData choiePlayerData;
+    public PlayerData ChoiePlayerData { get => choiePlayerData; set => choiePlayerData = value; }
 
-    private PlayerData choicePlayerData;
-
-    public PlayerData ChoicePlayerData { get => choicePlayerData; set => choicePlayerData = value; }
-
-
-
+    public ItemData[] itemsList;
 
     public void Init()
     {
@@ -25,24 +27,42 @@ public class UISystem : IUISystem
         AddPanelToDict<LoadPanel>();
         AddPanelToDict<CharacterCreatePanel>();
         OpenPanel<LoginPanel>();
+        string jsonStr = File.ReadAllText(Application.streamingAssetsPath + "/ItemInfo.json");
+        ItemDataList idl = JsonUtility.FromJson<ItemDataList>(jsonStr);
+        itemsList=idl.itemDatas;
+        //for (int i = 0; i < itemsList.Length; i++)
+        //{
+        //    Debug.Log(itemsList[i].description);
+        //}
     }
-
-    private void AddPanelToDict<T>()where T:BasePanel {
-        string panelType =  typeof(T).ToString();
-        if (panelDict.ContainsKey(panelType)) {
-            Debug.Log("µ±Ç°×ÖµäÒÑÓĞ"+panelType+"ÀàĞÍµÄÃæ°å");
+    /// <summary>
+    /// æ·»åŠ é¢æ¿åˆ°UIç³»ç»Ÿ
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    private void AddPanelToDict<T>() where T:BasePanel
+    {
+        string panelType= typeof(T).ToString();
+        if (panelDict.ContainsKey(panelType))
+        {
+            Debug.Log("å½“å‰å­—å…¸å·²æœ‰ï¼š"+panelType+"ç±»å‹çš„é¢æ¿");
             return;
         }
-        GameObject panelGo =  GameObject.Instantiate(GameResSystem.GetRes<GameObject>("Prefabs/UI/" + panelType),canvasTrans);
-        panelDict.Add(panelType,panelGo.AddComponent<T>());
+        GameObject panelGo= GameObject.Instantiate(GameResSystem.GetRes<GameObject>("Prefabs/UI/" + panelType), canvasTrans);
+        panelDict.Add(panelType, panelGo.AddComponent<T>());
         panelDict[panelType].OnInit();
     }
-
-    private void RemovePanelInDict(string panelType) {
-        if (!panelDict.ContainsKey(panelType)) {
-            Debug.Log("µ±Ç°×Öµä²»°üº¬" + panelType + "ÀàĞÍµÄÃæ°å");
+    /// <summary>
+    /// ä»UIç³»ç»Ÿç§»é™¤é¢æ¿
+    /// </summary>
+    /// <param name="panelType"></param>
+    private void RemovePanelInDict(string panelType)
+    {
+        if (!panelDict.ContainsKey(panelType))
+        {
+            Debug.Log("å½“å‰å­—å…¸ä¸åŒ…å«ï¼š" + panelType + "ç±»å‹çš„é¢æ¿");
             return;
         }
+        //Debug.Log("ç§»é™¤äº†"+ panelType);
         GameObject panelGo = panelDict[panelType].gameObject;
         panelDict.Remove(panelType);
         GameObject.Destroy(panelGo);
@@ -53,7 +73,7 @@ public class UISystem : IUISystem
         string panelType = typeof(T).ToString();
         if (!panelDict.ContainsKey(panelType))
         {
-            Debug.Log("µ±Ç°×Öµä²»°üº¬" + panelType + "ÀàĞÍµÄÃæ°å");
+            Debug.Log("å½“å‰å­—å…¸ä¸åŒ…å«ï¼š" + panelType + "ç±»å‹çš„é¢æ¿");
             return;
         }
         panelDict[panelType].OnShow(objs);
@@ -61,10 +81,9 @@ public class UISystem : IUISystem
 
     public void ClosePanel(string panelType)
     {
-        
         if (!panelDict.ContainsKey(panelType))
         {
-            Debug.Log("µ±Ç°×Öµä²»°üº¬" + panelType + "ÀàĞÍµÄÃæ°å");
+            Debug.Log("å½“å‰å­—å…¸ä¸åŒ…å«ï¼š" + panelType + "ç±»å‹çš„é¢æ¿");
             return;
         }
         panelDict[panelType].OnClose();
@@ -72,7 +91,6 @@ public class UISystem : IUISystem
 
     public void UnLoadLoginPanelsAndLoadGamePanels()
     {
-
         RemovePanelInDict("LoginPanel");
         RemovePanelInDict("RegisterPanel");
         RemovePanelInDict("MaskPanel");
@@ -81,12 +99,17 @@ public class UISystem : IUISystem
         RemovePanelInDict("LoadPanel");
         RemovePanelInDict("CharacterCreatePanel");
         AddPanelToDict<GamePanel>();
+        AddPanelToDict<CharacterPanel>();
+        AddPanelToDict<InventoryPanel>();
         OpenPanel<GamePanel>();
     }
-
- 
-
-   
-
-
+    /// <summary>
+    /// é€šè¿‡ç‰©å“IDè·å–ç‰©å“ä¿¡æ¯
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public ItemData GetItemDataByID(int id)
+    {
+        return itemsList[id];
+    }
 }

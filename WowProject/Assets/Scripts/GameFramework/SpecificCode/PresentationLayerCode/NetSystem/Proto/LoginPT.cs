@@ -1,31 +1,43 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public class PTRegister : PTBase {
-
-    public PTRegister() {//×¢²áĞ­Òé
-        protoName = "PTRegister";
-    }
-
+//*****************************************
+//åˆ›å»ºäººï¼š Trigger 
+//åŠŸèƒ½è¯´æ˜ï¼šç™»å½•éƒ¨åˆ†ç›¸å…³çš„åè®®
+//***************************************** 
+/// <summary>
+/// æ³¨å†Œåè®®
+/// </summary>
+public class PTRegister : PTBase
+{
+    public PTRegister() { protoName = "PTRegister"; }
+    //å®¢æˆ·ç«¯å‘
     public string id = "";
     public string pw = "";
-    public int result = 0;//·şÎñÆ÷»Ø¸´µÄ½á¹û 0³É¹¦ 1Ê§°Ü
+    //æœåŠ¡å™¨å› (0.æˆåŠŸï¼Œ1.å¤±è´¥)
+    public int result = 0;
 }
-
-public class PTLogin : PTBase//µÇÂ¼Ğ­Òé
+/// <summary>
+/// ç™»å½•åè®®
+/// </summary>
+public class PTLogin : PTBase
 {
     public PTLogin() { protoName = "PTLogin"; }
+    //å®¢æˆ·ç«¯å‘
     public string id = "";
     public string pw = "";
-    public int result = 0;//·şÎñÆ÷»Ø¸´µÄ½á¹û 0³É¹¦ 1Ê§°Ü
+    //æœåŠ¡å™¨å› (0.æˆåŠŸï¼Œ1.å¤±è´¥)
+    public int result = 0;
 }
-
-//´´½¨ĞÂ½ÇÉ«
+/// <summary>
+/// åˆ›å»ºæ–°è§’è‰²
+/// </summary>
 public class PTCreateNewCharacter : PTBase
 {
     public PTCreateNewCharacter() { protoName = "PTCreateNewCharacter"; }
-    public string playDataJson = "";//¿Í»§¶Ë·¢µÄĞÅÏ¢
-    public int result = 0;//·şÎñÆ÷»Ø¸´µÄ½á¹û 0³É¹¦ 1Ê§°Ü
-
+    //å®¢æˆ·ç«¯å‘
+    public string playerDataJson = "";
+    //æœåŠ¡å™¨å› (0.æˆåŠŸï¼Œ1.å¤±è´¥)
+    public int result = 0;
 }
+
